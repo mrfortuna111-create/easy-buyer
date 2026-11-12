@@ -1,1 +1,685 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Easy Buyer</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#F3F6F4;color:#17201D}h1{font-weight:500}</style></head><body><main><h1>Easy Buyer</h1><p>Мини-приложение скоро будет здесь.</p></main></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Easy Buyer</title>
+<script src="https://telegram.org/js/telegram-web-app.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Prata&display=swap">
+<style>
+/* Мини-приложение Easy Buyer, стиль «Нефрит» (утверждён Дмитрием 11.11.2026): фарфор, нефритовый зелёный, приглушённое золото. */
+:root {
+  --bg: #F3F6F4; --surface: #FFFFFF; --surface-2: #E5ECE9; --ink: #17201D; --muted: #586964; --line: #D2DCD8;
+  --accent: #1E6E5B; --accent-2: #A07A3C; --on-accent: #FFFFFF; --good: #1E6E5B; --warn: #985F0E; --danger: #B3412F;
+  --shadow: rgba(20, 60, 50, .22);
+  --f-display: "Prata", Georgia, "Times New Roman", serif; --f-body: "Manrope", "Segoe UI", Roboto, system-ui, sans-serif;
+  --r-card: 18px; --r-field: 12px;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0E1412; --surface: #151E1B; --surface-2: #1C2824; --ink: #E7EFEC; --muted: #97ABA4; --line: #26342F;
+  --accent: #5DC0A2; --accent-2: #D8B373; --on-accent: #08120F; --good: #5DC0A2; --warn: #E0A64A; --danger: #F08A78;
+  --shadow: rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font-family: var(--f-body); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+p { margin: 0; }
+[hidden] { display: none !important; }
+
+.screen { min-height: 100vh; padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+.pad { padding: 16px max(16px, env(safe-area-inset-left, 0px)) 16px max(16px, env(safe-area-inset-right, 0px)); }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 24px; }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--surface); border-top: 1px solid var(--line); padding: 6px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+.tab { position: relative; border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 0; color: var(--muted); font-size: 11px; font-weight: 600; }
+.tab svg { width: 24px; height: 24px; }
+.tab[aria-current="page"] { color: var(--accent); }
+.tab .dot { position: absolute; top: 4px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); border: 2px solid var(--surface); }
+
+.h-display { font-family: var(--f-display); font-weight: 400; font-size: 27px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.h1 { font-family: var(--f-display); font-weight: 400; font-size: 24px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.h2 { font-family: var(--f-display); font-weight: 400; font-size: 19px; margin: 0 0 10px; }
+.eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+.note { font-size: 12px; color: var(--muted); }
+.pre { white-space: pre-line; }
+.card { background: var(--surface); border-radius: var(--r-card); padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -16px var(--shadow); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 1px solid transparent; font-weight: 700; text-decoration: none; }
+.btn.wide { width: 100%; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-ghost { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.btn-quiet { background: var(--surface-2); color: var(--ink); }
+.btn[disabled] { opacity: .55; cursor: default; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > .btn { flex: 1 1 140px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill-accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); }
+.pill-gold { color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 16%, transparent); }
+.pill-good { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.pill-warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent); }
+.pill-muted { color: var(--muted); background: var(--surface-2); }
+
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-mark { width: 48px; height: 48px; flex: none; border-radius: 50%; overflow: hidden; background: #000; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent); }
+.logo-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.logo-word { font-family: var(--f-display); font-size: 18px; }
+.logo-sub { font-size: 12px; color: var(--muted); }
+.hero { display: grid; gap: 14px; }
+.ex-head { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; margin: 6px 0 12px; }
+.ex-photo { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--surface-2); }
+.ex-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.compare > div { display: grid; gap: 2px; }
+.compare .lbl { font-size: 12px; color: var(--muted); }
+.compare s { color: var(--muted); font-size: 16px; }
+.compare b { font-size: 20px; }
+.save { margin-top: 10px; color: var(--good); font-weight: 700; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: st; }
+.steps li { display: grid; grid-template-columns: 32px 1fr; gap: 2px 12px; counter-increment: st; }
+.steps li::before { content: counter(st); grid-row: span 2; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); color: var(--accent); font-family: var(--f-display); }
+.steps li b { font-weight: 600; }
+.steps li span { color: var(--muted); font-size: 14px; }
+.trust { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.trust li { display: grid; gap: 2px; padding-left: 14px; border-left: 2px solid var(--line); }
+.trust li b { font-weight: 600; }
+.trust li span { color: var(--muted); font-size: 14px; }
+.reviews { display: grid; grid-auto-flow: column; grid-auto-columns: 82%; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
+.reviews .card { scroll-snap-align: start; display: grid; gap: 6px; align-content: start; }
+.stars { color: var(--accent-2); letter-spacing: 2px; }
+.faq { display: grid; gap: 8px; }
+.faq details { background: var(--surface); border-radius: var(--r-card); padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.faq summary { font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--muted); font-weight: 400; }
+.faq details[open] summary::after { content: "−"; }
+.faq details p { margin-top: 8px; color: var(--muted); font-size: 14px; }
+
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 3px; }
+.seg button { border: 0; background: transparent; padding: 8px 4px; border-radius: 999px; font-weight: 700; font-size: 13px; color: var(--muted); }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips.wrap { flex-wrap: wrap; overflow: visible; }
+.chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pcard { border: 0; background: var(--surface); border-radius: var(--r-card); padding: 8px; text-align: left; display: grid; gap: 6px; align-content: start; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -18px var(--shadow); min-width: 0; }
+.pimg { position: relative; aspect-ratio: 1 / 1; max-width: 100%; border-radius: 14px; overflow: hidden; background: var(--surface-2); }
+.pimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stock { position: absolute; bottom: 6px; left: 6px; background: var(--surface); color: var(--ink); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+.pname { font-size: 13px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.pprice b { font-size: 15px; }
+.pask { font-size: 13px; font-weight: 700; color: var(--accent); }
+.sets { display: grid; gap: 10px; }
+.set { border: 0; text-align: left; border-radius: var(--r-card); padding: 16px; display: grid; gap: 4px; color: var(--ink); background: color-mix(in srgb, var(--accent) 11%, var(--surface-2)); }
+.set b { font-family: var(--f-display); font-size: 19px; font-weight: 400; }
+.set span { font-size: 13px; color: var(--muted); }
+.back { border: 0; background: none; color: var(--accent); font-weight: 700; padding: 0; justify-self: start; }
+
+.sheet-wrap { position: fixed; inset: 0; z-index: 30; display: grid; align-items: end; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.42); border: 0; padding: 0; }
+.sheet { position: relative; background: var(--surface); border-radius: 24px 24px 0 0; padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; max-height: 90vh; overflow-y: auto; animation: rise .22s ease-out; }
+.sheet .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); justify-self: center; }
+.gallery { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; border-radius: 16px; background: var(--surface-2); }
+.gallery img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; scroll-snap-align: start; display: block; }
+.gcount { font-size: 12px; color: var(--muted); text-align: center; }
+@keyframes rise { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+.field { display: grid; gap: 4px; }
+.field > span { font-size: 12px; color: var(--muted); font-weight: 700; }
+.field input, .field textarea { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: var(--r-field); padding: 10px 12px; }
+.field textarea { resize: vertical; min-height: 64px; }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.stepper { display: inline-grid; grid-template-columns: 38px 34px 38px; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); height: 44px; }
+.stepper button { border: 0; background: none; height: 100%; font-size: 18px; color: var(--ink); }
+.stepper b { text-align: center; }
+.item { display: grid; gap: 12px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.link-btn { border: 0; background: none; padding: 0; color: var(--danger); font-weight: 700; font-size: 13px; }
+.photos { display: flex; gap: 8px; flex-wrap: wrap; }
+.thumb { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); }
+.add-photo { width: 64px; height: 64px; border-radius: 12px; border: 1.5px dashed var(--line); display: grid; place-items: center; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; line-height: 1.2; }
+.from-cat { font-size: 12px; color: var(--good); font-weight: 700; }
+
+.ocard { width: 100%; text-align: left; display: grid; gap: 8px; background: var(--surface); border: 0; border-radius: var(--r-card); padding: 14px; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -18px var(--shadow); }
+.ocard-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.code { font-weight: 700; }
+.mini { height: 5px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.mini span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.hint { font-size: 13px; font-weight: 700; color: var(--accent-2); }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; }
+.timeline li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; position: relative; padding-bottom: 12px; color: var(--muted); font-size: 14px; }
+.timeline li:last-child { padding-bottom: 0; }
+.timeline li::before { content: ""; width: 12px; height: 12px; margin: 4px 5px 0; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); box-sizing: border-box; }
+.timeline li::after { content: ""; position: absolute; left: 10px; top: 18px; bottom: 0; width: 2px; background: var(--line); }
+.timeline li:last-child::after { display: none; }
+.timeline li.done { color: var(--ink); }
+.timeline li.done::before { background: var(--accent); border-color: var(--accent); }
+.timeline li.done::after { background: var(--accent); }
+.timeline li.now { color: var(--ink); font-weight: 700; }
+.timeline li.now::before { border-color: var(--accent-2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 24%, transparent); }
+.timeline li .sub { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.timeline li.delay { color: var(--warn); font-weight: 700; }
+.timeline li.delay::before { border-color: var(--warn); background: var(--warn); }
+.lines { display: grid; gap: 8px; }
+.line { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.line span:first-child { color: var(--muted); }
+.line.total { font-size: 17px; font-weight: 700; padding-top: 8px; border-top: 1px dashed var(--line); }
+.line.total span:first-child { color: var(--ink); }
+.copy-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface-2); border-radius: var(--r-field); padding: 10px 12px; }
+.copy-row .val { font-weight: 700; overflow-wrap: anywhere; min-width: 0; }
+.copy-btn { flex: 0 0 auto; border: 0; background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; }
+.alert { display: grid; gap: 10px; border-radius: var(--r-card); padding: 14px; background: color-mix(in srgb, var(--accent-2) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent-2) 35%, transparent); }
+.alert.ok { background: color-mix(in srgb, var(--good) 10%, var(--surface)); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
+.alert.info { background: var(--surface-2); border-color: transparent; }
+.alert.warn { background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+.success { display: grid; gap: 14px; padding-top: 24px; }
+.success .big-no { font-family: var(--f-display); font-size: 44px; color: var(--accent); }
+.center { min-height: 70vh; display: grid; place-items: center; text-align: center; gap: 12px; padding: 24px; }
+.spinner { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--surface-2); border-top-color: var(--accent); animation: spin 1s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); z-index: 40; background: var(--ink); color: var(--surface); padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 600; animation: rise .2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .sheet, .toast { animation: none; } .spinner { animation-duration: 3s; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-form" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></symbol>
+  </defs>
+</svg>
+<main class="screen" id="screen"><div class="center"><div><div class="spinner"></div><p class="muted" style="margin-top:12px">Загружаем…</p></div></div></main>
+<nav class="tabbar" id="tabbar" aria-label="Разделы" hidden>
+  <button type="button" class="tab" data-tab="home"><svg aria-hidden="true"><use href="#i-home"/></svg>Главная</button>
+  <button type="button" class="tab" data-tab="catalog"><svg aria-hidden="true"><use href="#i-grid"/></svg>Каталог</button>
+  <button type="button" class="tab" data-tab="request"><svg aria-hidden="true"><use href="#i-form"/></svg>Заявка</button>
+  <button type="button" class="tab" data-tab="orders"><svg aria-hidden="true"><use href="#i-box"/></svg>Заказы<span class="dot" id="orders-dot" hidden></span></button>
+</nav>
+<div id="layer"></div>
+
+<script>
+(function () {
+  'use strict';
+  // Сервер: тот же скрипт Google, что у бота (83_app.js). Подпись Telegram проверяется там.
+  var API = 'https://script.google.com/macros/s/AKfycby7dhO2eyalQTcF3H3LFDKgAjzqx7T5aGyRPUI06lt5KSVNZ40gO9d5x5PmIN5qyAyr8g/exec?app=1';
+  var BOT = 'EasyBuyerRu_bot';
+  var STAGES = ['Заявка', 'Оплата', 'Выкуп', 'Доставка до склада в Китае', 'Склад в Китае', 'Таможня', 'Доставка по России', 'Пункт выдачи', 'Выдан'];
+  var STATUS = {
+    'Новая заявка': [0, 'Ждём расчёт', 'pill-muted'], 'Расчёт отправлен': [0, 'Расчёт готов', 'pill-gold'],
+    'Ждём оплату': [1, 'Ждём оплату', 'pill-warn'], 'Оплачен': [2, 'Оплачен', 'pill-accent'], 'Выкуплен': [3, 'Выкуплен', 'pill-accent'],
+    'Доставка до склада в Китае': [3, 'Едет на склад', 'pill-accent'], 'На складе в Китае': [4, 'На складе в Китае', 'pill-accent'],
+    'На таможне': [5, 'На таможне', 'pill-accent'], 'Доставка по России': [6, 'Едет по России', 'pill-accent'],
+    'В пункте выдачи': [7, 'В пункте выдачи', 'pill-good'], 'Выдан': [8, 'Выдан', 'pill-good'], 'Отменён': [-1, 'Отменён', 'pill-muted']
+  };
+  var TRACK_FROM = 6;
+  var CARRIER_GEN = { 'СДЭК': 'СДЭК', 'Почта России': 'Почты России' };
+
+  // ---------- Telegram ----------
+  // Подпись берём у скрипта Telegram, а если он не загрузился (сбои telegram.org) — из адреса страницы
+  function hashParam(name) {
+    var h = (location.hash || '').replace(/^#/, '');
+    var m = h.split('&').filter(function (kv) { return kv.indexOf(name + '=') === 0; })[0];
+    return m ? decodeURIComponent(m.slice(name.length + 1)) : '';
+  }
+  function TG() { return window.Telegram && window.Telegram.WebApp; }
+  function initData() { var w = TG(); return (w && w.initData) || hashParam('tgWebAppData'); }
+  function applyTheme() {
+    var w = TG(), scheme = w && w.colorScheme;
+    if (!scheme) { try { var tp = JSON.parse(hashParam('tgWebAppThemeParams') || '{}'); scheme = tp.bg_color && /^#?[0-3]/.test(tp.bg_color.replace('#', '')) ? 'dark' : 'light'; } catch (e) { scheme = 'light'; } }
+    document.documentElement.setAttribute('data-theme', scheme === 'dark' ? 'dark' : 'light');
+    try { if (w) { w.setHeaderColor && w.setHeaderColor(scheme === 'dark' ? '#151E1B' : '#FFFFFF'); w.setBackgroundColor && w.setBackgroundColor(scheme === 'dark' ? '#0E1412' : '#F3F6F4'); } } catch (e) {}
+  }
+  function openBot() {
+    var url = 'https://t.me/' + (state.bot || BOT);
+    var w = TG();
+    if (w && w.openTelegramLink) { w.openTelegramLink(url); try { w.close(); } catch (e) {} } else location.href = url;
+  }
+  function openLink(url) { var w = TG(); if (w && w.openLink) w.openLink(url); else window.open(url, '_blank'); }
+  function haptic(kind) { try { var w = TG(); w && w.HapticFeedback && w.HapticFeedback.notificationOccurred(kind || 'success'); } catch (e) {} }
+
+  function api(action, data) {
+    var body = Object.assign({ initData: initData(), action: action }, data || {});
+    return fetch(API, { method: 'POST', body: JSON.stringify(body), redirect: 'follow' })
+      .then(function (r) { return r.json(); });
+  }
+
+  // ---------- Состояние ----------
+  var state = {
+    tab: 'home', view: 'home', catMode: 'all', catFilter: 'Все', setName: null, sheet: null,
+    orderNo: null, lastNo: null, sending: false,
+    bot: BOT, user: {}, orders: [], catalog: [], cats: [], speeds: [], faq: [], reviews: [], city: '',
+    items: [], speed: ''
+  };
+  function newItem(o) { o = o || {}; return { cat: o.cat || '', title: o.title || '', size: o.size || '', qty: o.qty || 1, photos: [], catalogId: o.catalogId || '', name: o.name || '' }; }
+
+  var screen = document.getElementById('screen'), layer = document.getElementById('layer');
+  function fmt(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function plural(n, a, b, c) { var m = n % 100, k = n % 10; if (m > 10 && m < 20) return c; if (k > 1 && k < 5) return b; if (k === 1) return a; return c; }
+  function product(id) { for (var i = 0; i < state.catalog.length; i++) if (state.catalog[i].id === id) return state.catalog[i]; return null; }
+  function order(no) { for (var i = 0; i < state.orders.length; i++) if (state.orders[i].no === no) return state.orders[i]; return null; }
+  function thumb(f) { return 'catalog/thumbs/' + encodeURIComponent(f); }
+  function photo(f) { return 'catalog/photos/' + encodeURIComponent(f); }
+  function stInfo(o) { return STATUS[o.status] || [0, o.status, 'pill-muted']; }
+  function needsAction(o) { return o.status === 'Расчёт отправлен' || o.status === 'Ждём оплату' || (o.customs && o.customs.length) || (o.status === 'Выдан'); }
+  function catInfo(name) { for (var i = 0; i < state.cats.length; i++) if (state.cats[i].name === name) return state.cats[i]; return null; }
+  function wholesale() { return state.items.some(function (x) { var c = catInfo(x.cat); return c && c.wholesaleFrom > 0 && x.qty >= c.wholesaleFrom; }); }
+  function speedList() {
+    var sens = state.items.some(function (x) { var c = catInfo(x.cat); return c && c.sensitive; });
+    var ok = state.speeds.filter(function (s) { return !sens || s.sensitiveOk; });
+    return ok.length ? ok : state.speeds;
+  }
+
+  var toastTimer = null;
+  function toast(text) {
+    var old = document.querySelector('.toast'); if (old) old.remove();
+    var t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = text;
+    document.body.appendChild(t); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.remove(); }, 2800);
+  }
+
+  // ---------- Экраны ----------
+  function viewHome() {
+    var ex = state.catalog.filter(function (p) { return p.price && p.photos.length; })[0];
+    var h = '<div class="pad stack-lg">' +
+      '<section class="card hero">' +
+        '<div class="logo"><span class="logo-mark"><img src="logo.jpg" alt="Easy Buyer"></span><span><span class="logo-word">Easy Buyer</span><br><span class="logo-sub">товары из Китая под заказ</span></span></div>' +
+        '<h1 class="h-display">Ваш проводник в мир китайского шопинга</h1>' +
+        '<p class="muted">Привозим оригинальные вещи с Poizon и из проверенных магазинов Китая дешевле, чем в России. Цену под ключ называем до оплаты.</p>' +
+        '<div class="row"><button type="button" class="btn btn-primary" data-go="request">Рассчитать заказ</button><button type="button" class="btn btn-ghost" data-go="catalog">Каталог</button></div>' +
+      '</section>';
+    // Пример расчёта — только товар с проверенной ценой (решение Дмитрия 12.11.2026)
+    if (ex) {
+      h += '<section class="card"><p class="eyebrow">Пример расчёта</p>' +
+        '<div class="ex-head"><span class="ex-photo"><img src="' + thumb(ex.photos[0]) + '" alt=""></span><p style="font-weight:600">' + esc(ex.name) + '</p></div>' +
+        '<div class="compare">' + (ex.rf ? '<div><span class="lbl">В магазинах России</span><s class="num">' + fmt(ex.rf) + '</s></div>' : '') +
+        '<div><span class="lbl">У нас под ключ, от</span><b class="num">' + fmt(ex.price) + '</b></div></div>' +
+        (ex.rf && ex.rf > ex.price ? '<p class="save">Экономия до ' + fmt(ex.rf - ex.price) + '</p>' : '') + '</section>';
+    }
+    h += '<section><h2 class="h2">Как это работает</h2><ol class="steps">' +
+        '<li><b>Присылаете фото или ссылку</b><span>Из любого магазина, соцсети или скриншот, и город доставки</span></li>' +
+        '<li><b>Получаете цену под ключ</b><span>Товар, доставка, пошлина и наша комиссия — сразу итог</span></li>' +
+        '<li><b>Оформляете и оплачиваете</b><span>Только после того, как согласились с ценой и проверили размер</span></li>' +
+        '<li><b>Заполняете данные получателя</b><span>Когда посылка на складе в Китае, в специальной форме</span></li>' +
+        '<li><b>Следите за посылкой здесь</b><span>Этапы, таможня, трек-номер</span></li>' +
+      '</ol></section>' +
+      '<section><h2 class="h2">Почему нам доверяют</h2><ul class="trust">' +
+        '<li><b>Оригинальные вещи</b><span>На Poizon каждую вещь проверяют эксперты площадки перед отправкой. На Taobao покупаем только у продавцов, проверенных площадкой</span></li>' +
+        '<li><b>Оплата после расчёта</b><span>Сначала точная цена, потом решение</span></li>' +
+        '<li><b>Каждый этап на виду</b><span>Статусы и трек-номер в разделе «Заказы»</span></li>' +
+      '</ul></section>';
+    if (state.reviews.length) {
+      h += '<section><h2 class="h2">Отзывы</h2><div class="reviews">' + state.reviews.map(function (r) {
+        return '<article class="card"><span class="stars" aria-label="' + r.rating + ' из 5">' + '★★★★★'.slice(0, r.rating) + '</span><p>' + esc(r.text) + '</p><p class="muted small">' + esc(r.name) + '</p></article>';
+      }).join('') + '</div></section>';
+    }
+    if (state.faq.length) {
+      h += '<section><h2 class="h2">Частые вопросы</h2><div class="faq">' + state.faq.map(function (f) {
+        return '<details><summary>' + esc(f.q) + '</summary><p class="pre">' + esc(f.a) + '</p></details>';
+      }).join('') + '</div></section>';
+    }
+    return h + '<button type="button" class="btn btn-ghost wide" data-bot>Написать менеджеру</button></div>';
+  }
+
+  function productCard(p) {
+    return '<button type="button" class="pcard" data-product="' + esc(p.id) + '">' +
+      '<span class="pimg">' + (p.photos[0] ? '<img src="' + thumb(p.photos[0]) + '" alt="" loading="lazy">' : '') +
+        (/наличии/i.test(p.stock) ? '<span class="stock">В наличии</span>' : '') + '</span>' +
+      '<span class="pname">' + esc(p.name) + '</span>' +
+      (p.price ? '<span class="pprice"><b class="num">от ' + fmt(p.price) + '</b></span>' : '<span class="pask">Узнать цену</span>') +
+    '</button>';
+  }
+  function allSets() {
+    var m = {}; state.catalog.forEach(function (p) { (p.sets || []).forEach(function (s) { m[s] = (m[s] || 0) + 1; }); });
+    return Object.keys(m).map(function (k) { return { name: k, n: m[k] }; });
+  }
+  function viewCatalog() {
+    var sets = allSets();
+    var segs = [['all', 'Все товары']];
+    if (state.catalog.some(function (p) { return /наличии/i.test(p.stock); })) segs.push(['stock', 'В наличии']);
+    if (sets.length) segs.push(['sets', 'Подборки']);
+    var html = '<div class="pad stack">' + (segs.length > 1 ? '<div class="seg" role="tablist" aria-label="Каталог">' + segs.map(function (s) {
+      return '<button type="button" role="tab" data-catmode="' + s[0] + '" aria-selected="' + (state.catMode === s[0]) + '">' + s[1] + '</button>';
+    }).join('') + '</div>' : '<h1 class="h1">Каталог</h1>');
+    if (!state.catalog.length) return html + '<p class="muted">Каталог скоро появится. А пока пришлите фото или ссылку в «Заявке».</p></div>';
+    if (state.catMode === 'sets' && !state.setName) {
+      return html + '<div class="sets">' + sets.map(function (s) {
+        return '<button type="button" class="set" data-set="' + esc(s.name) + '"><b>' + esc(s.name) + '</b><span>' + s.n + ' ' + plural(s.n, 'товар', 'товара', 'товаров') + '</span></button>';
+      }).join('') + '</div></div>';
+    }
+    var list = state.catalog.slice();
+    if (state.setName) {
+      list = list.filter(function (p) { return (p.sets || []).indexOf(state.setName) >= 0; });
+      html += '<button type="button" class="back" data-set-back>‹ Все подборки</button><h1 class="h1">' + esc(state.setName) + '</h1>';
+    } else {
+      if (state.catMode === 'stock') list = list.filter(function (p) { return /наличии/i.test(p.stock); });
+      var cats = ['Все'];
+      list.forEach(function (p) { if (p.cat && cats.indexOf(p.cat) < 0) cats.push(p.cat); });
+      html += '<div class="chips" role="group" aria-label="Категории">' + cats.map(function (c) {
+        return '<button type="button" class="chip" data-filter="' + esc(c) + '" aria-pressed="' + (state.catFilter === c) + '">' + esc(c) + '</button>';
+      }).join('') + '</div>';
+      if (state.catFilter !== 'Все') list = list.filter(function (p) { return p.cat === state.catFilter; });
+    }
+    html += list.length ? '<div class="grid">' + list.map(productCard).join('') + '</div>' : '<p class="muted">В этой категории пока ничего нет.</p>';
+    return html + '<p class="note">У обуви и одежды цена зависит от размера: на площадках у каждого размера своя цена. Нажмите «Узнать цену» — менеджер пришлёт расчёт для вашего размера.</p></div>';
+  }
+
+  function viewRequest() {
+    if (!state.items.length) state.items = [newItem()];
+    var wh = wholesale(), sp = speedList();
+    if (!sp.some(function (s) { return s.label === state.speed; })) state.speed = sp[0] ? sp[0].label : '';
+    var cur = sp.filter(function (s) { return s.label === state.speed; })[0];
+    return '<div class="pad stack">' +
+      '<div class="stack" style="gap:6px"><h1 class="h1">Заявка</h1><p class="muted">Пришлите, что хотите заказать. Менеджер найдёт товар и пришлёт цену под ключ сюда и в чат с ботом.</p></div>' +
+      state.items.map(itemEditor).join('') +
+      (state.items.length < 10 ? '<button type="button" class="btn btn-ghost wide" data-add-item>Добавить ещё товар</button>' : '') +
+      '<section class="card stack">' +
+        '<label class="field" for="rq-city"><span>Город доставки</span><input id="rq-city" data-city value="' + esc(state.city) + '" placeholder="Например, Москва" maxlength="60"></label>' +
+        '<div class="chips" role="group" aria-label="Быстрый выбор"><button type="button" class="chip" data-city-pick="Москва" aria-pressed="' + (state.city === 'Москва') + '">Москва</button></div>' +
+        '<p class="note">Тарифы доставки у нас до Москвы. Если город другой, менеджер учтёт доставку до него в расчёте.</p>' +
+        (wh ? '<div class="alert info"><b>Крупная партия</b><span class="small">Способ и срок доставки подберёт менеджер: они зависят от объёма и веса.</span></div>'
+          : '<div class="field"><span id="speed-l">Доставка</span><div class="chips" role="group" aria-labelledby="speed-l">' + sp.map(function (s) {
+              return '<button type="button" class="chip" data-speed="' + esc(s.label) + '" aria-pressed="' + (state.speed === s.label) + '">' + esc(s.label) + '</button>';
+            }).join('') + '</div></div>' + (cur && cur.term ? '<p class="note">«' + esc(cur.label) + '»: ' + esc(cur.term) + '.</p>' : '')) +
+      '</section>' +
+      '<section class="card"><p class="eyebrow">Как считаем цену</p><ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px;font-size:14px">' +
+        (state.rate ? '<li>Товар по курсу <b class="num">' + state.rate.toFixed(2).replace('.', ',') + ' ₽</b> за юань</li>' : '<li>Товар по курсу юаня</li>') +
+        '<li>Доставка по весу каждой вещи</li><li>Пошлина, только если вещь дороже 200 €</li><li>Наша комиссия</li>' +
+      '</ul><p class="note" style="margin-top:8px">Курс юаня обновляется каждое утро.</p></section>' +
+      '<button type="button" class="btn btn-primary wide" data-submit' + (state.sending ? ' disabled' : '') + '>' + (state.sending ? 'Отправляем…' : 'Отправить заявку') + '</button>' +
+    '</div>';
+  }
+  function itemEditor(it, i) {
+    var id = 'it' + i;
+    return '<article class="card item">' +
+      '<div class="item-head"><p class="eyebrow">Товар ' + (i + 1) + '</p>' +
+        (state.items.length > 1 ? '<button type="button" class="link-btn" data-remove="' + i + '">Убрать</button>' : '') + '</div>' +
+      (it.catalogId ? '<p class="from-cat">Из каталога: ' + esc(it.name) + '</p>' : '') +
+      '<div class="chips" role="group" aria-label="Категория">' + state.cats.map(function (c) {
+        return '<button type="button" class="chip" data-cat-pick="' + i + '|' + esc(c.name) + '" aria-pressed="' + (it.cat === c.name) + '">' + esc(c.name) + '</button>';
+      }).join('') + '</div>' +
+      (it.catalogId ? '' : '<label class="field" for="' + id + '-title"><span>Что заказать</span><input id="' + id + '-title" data-field="' + i + '|title" value="' + esc(it.title) + '" placeholder="Название или ссылка из любого магазина" maxlength="500"></label>') +
+      '<div class="row2"><label class="field" for="' + id + '-size"><span>Размер, цвет, мерки</span><input id="' + id + '-size" data-field="' + i + '|size" value="' + esc(it.size) + '" placeholder="Например, 41, стопа 26 см, белые" maxlength="300"></label>' +
+        '<div class="field"><span>Количество</span><div class="stepper"><button type="button" data-qty="' + i + '|-1" aria-label="Меньше">−</button><b class="num">' + it.qty + '</b><button type="button" data-qty="' + i + '|1" aria-label="Больше">+</button></div></div></div>' +
+      (it.catalogId ? '' : '<div class="field"><span>Фото или скриншоты</span><div class="photos">' +
+        it.photos.map(function (src, k) { return '<img class="thumb" src="' + src + '" alt="Фото ' + (k + 1) + '">'; }).join('') +
+        (it.photos.length < 5 ? '<label class="add-photo" for="' + id + '-photo">Добавить<br>фото<input id="' + id + '-photo" type="file" accept="image/*" multiple data-photo="' + i + '" hidden></label>' : '') +
+      '</div></div>') +
+    '</article>';
+  }
+  function viewSuccess() {
+    return '<div class="pad success"><p class="eyebrow">Заявка отправлена</p><p class="big-no num">№ ' + state.lastNo + '</p>' +
+      '<p>Менеджер найдёт товар и пришлёт точную цену. Обычно это занимает несколько часов. Расчёт придёт в чат с ботом и появится в разделе «Заказы».</p>' +
+      '<div class="row"><button type="button" class="btn btn-primary" data-go="orders">К моим заказам</button><button type="button" class="btn btn-ghost" data-go="home">На главную</button></div></div>';
+  }
+
+  function progress(o) { var i = stInfo(o)[0]; return i < 0 ? 0 : Math.round((i + 1) / STAGES.length * 100); }
+  function hintOf(o) {
+    if (o.delay) return o.delay;
+    if (o.status === 'Расчёт отправлен') return 'Нужно ваше решение';
+    if (o.status === 'Ждём оплату') return 'Ждём оплату';
+    if (o.customs && o.customs.length) return 'Заполните данные получателя';
+    return '';
+  }
+  function viewOrders() {
+    if (!state.orders.length) return '<div class="pad stack"><h1 class="h1">Мои заказы</h1><p class="muted">Заказов пока нет. Пришлите товар в «Заявке» — расчёт появится здесь.</p><button type="button" class="btn btn-primary wide" data-go="request">Рассчитать заказ</button></div>';
+    return '<div class="pad stack"><h1 class="h1">Мои заказы</h1>' + state.orders.map(function (o) {
+      var s = stInfo(o), hint = hintOf(o);
+      return '<button type="button" class="ocard" data-order="' + o.no + '">' +
+        '<div class="ocard-top"><span class="code num">№ ' + o.no + '</span>' + pill(o) + '</div>' +
+        '<span>' + esc(o.items.map(function (x) { return x.name + (x.qty > 1 ? ' ×' + x.qty : ''); }).join(', ')) + '</span>' +
+        (s[0] >= 0 ? '<div class="mini" aria-hidden="true"><span style="width:' + progress(o) + '%"></span></div>' : '') +
+        (hint ? '<span class="hint">' + esc(hint) + '</span>' : '<span class="muted small">' + (o.calc ? 'Итого ' + fmt(o.calc.total) : 'Заявка от ' + esc(o.date)) + '</span>') +
+      '</button>';
+    }).join('') + '</div>';
+  }
+  function pill(o) { var s = stInfo(o); return o.delay ? '<span class="pill pill-warn">Задерживается</span>' : '<span class="pill ' + s[2] + '">' + esc(s[1]) + '</span>'; }
+  function timeline(o) {
+    var cur = stInfo(o)[0];
+    if (cur < 0) return '';
+    return '<ol class="timeline">' + STAGES.map(function (name, i) {
+      var cls = i < cur || (i === cur && o.status === 'Выдан') ? 'done' : (i === cur ? 'now' : '');
+      var sub = '';
+      if (cls === 'now' && i === 0) sub = o.status === 'Расчёт отправлен' ? 'расчёт готов' : 'считаем цену';
+      else if (cls === 'now' && name === 'Склад в Китае') sub = o.customs && o.customs.length ? 'заполните данные получателя' : 'готовим к отправке';
+      else if (name === 'Доставка по России') sub = i <= cur ? (o.track ? 'трек-номер ниже' : '') : 'с этого этапа появится трек-номер';
+      var li = '<li class="' + cls + '"><span>' + name + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</span></li>';
+      if (o.delay && i === cur) li += '<li class="delay"><span>' + esc(o.delay) + '</span></li>';
+      return li;
+    }).join('') + '</ol>';
+  }
+  function viewOrder() {
+    var o = order(state.orderNo);
+    if (!o) { state.view = 'orders'; return viewOrders(); }
+    var h = '<div class="pad stack"><button type="button" class="back" data-go="orders">‹ Мои заказы</button>' +
+      '<div class="ocard-top"><h1 class="h1">Заказ № ' + o.no + '</h1>' + pill(o) + '</div>';
+    if (o.delay) h += '<div class="alert warn"><b>' + esc(o.delay) + '</b><span class="small">Мы следим за заказом каждый день и напишем, как только он поедет дальше. Спасибо за терпение 💛</span><button type="button" class="btn btn-ghost wide" data-bot>Написать менеджеру</button></div>';
+    if (o.status === 'Расчёт отправлен') {
+      h += '<div class="alert"><b>Расчёт готов. Проверьте размер и детали</b><span class="small">После отправки со склада в Китае вернуть вещь нельзя. Если всё верно, оформите заказ в чате с ботом: там кнопка «Размер верный, оформить». Цена действует 24 часа.</span>' +
+        '<button type="button" class="btn btn-primary wide" data-bot>Оформить в чате с ботом</button></div>';
+    }
+    if (o.status === 'Ждём оплату') h += '<div class="alert info"><b>Ждём оплату</b><span class="small">Реквизиты — в чате с ботом. После оплаты пришлите туда скриншот или чек.</span><button type="button" class="btn btn-ghost wide" data-bot>Открыть чат с ботом</button></div>';
+    if (o.customs && o.customs.length) {
+      h += '<div class="alert"><b>Посылка на складе в Китае. Заполните данные получателя</b><span class="small">В форме: ФИО, данные для таможни и пункт выдачи. Данные из формы к нам не попадают. Без них посылка не поедет в Россию.</span>' +
+        o.customs.map(function (u, k) { return '<button type="button" class="btn btn-primary wide" data-open="' + esc(u) + '">Открыть форму' + (o.customs.length > 1 ? ' ' + (k + 1) : '') + '</button>'; }).join('') +
+        '<button type="button" class="btn btn-ghost wide" data-customs-done="' + o.no + '">Я заполнил(а)</button></div>';
+    }
+    h += '<section class="card">' + timeline(o) + '</section>';
+    h += '<section class="card"><p class="eyebrow">Товары</p><div class="lines" style="margin-top:8px">' + o.items.map(function (x) {
+      return '<div class="line"><span>' + esc(x.name) + (x.details ? ', ' + esc(x.details) : '') + '</span><span class="num">' + x.qty + ' шт</span></div>';
+    }).join('') + '<div class="line"><span>Город доставки</span><span>' + esc(o.city || '—') + '</span></div>' +
+      (o.speed ? '<div class="line"><span>Доставка</span><span>' + esc(o.speed) + '</span></div>' : '') + '</div></section>';
+    if (o.calc) {
+      var c = o.calc;
+      h += '<section class="card"><p class="eyebrow">Расчёт</p><div class="lines" style="margin-top:8px">' +
+        '<div class="line"><span>Товар с выкупом</span><span class="num">' + fmt(c.goods) + '</span></div>' +
+        '<div class="line"><span>Доставка</span><span class="num">' + fmt(c.delivery) + '</span></div>' +
+        (c.duty ? '<div class="line"><span>Пошлина</span><span class="num">' + fmt(c.duty) + '</span></div>' : '') +
+        '<div class="line total"><span>Итого</span><span class="num">' + fmt(c.total) + '</span></div></div>' +
+        (c.method ? '<p class="muted small" style="margin-top:6px">' + esc(c.method) + '</p>' : '') +
+        (c.savings > 0 ? '<p class="save">В магазинах России ≈' + fmt(c.rf) + ', экономия ' + fmt(c.savings) + '</p>' : '') + '</section>';
+    }
+    if (o.status === 'Новая заявка') h += '<section class="card"><p>Менеджер ищет товар и считает цену. Обычно это занимает несколько часов, ответ придёт и сюда, и в чат с ботом.</p></section>';
+    if (o.track && stInfo(o)[0] >= TRACK_FROM) {
+      var gen = CARRIER_GEN[o.carrier] || ('«' + o.carrier + '»');
+      h += '<section class="card stack" style="gap:8px"><p class="eyebrow">Трек-номер' + (o.carrier ? ' · ' + esc(o.carrier) : '') + '</p>' +
+        '<div class="copy-row"><span class="val num">' + esc(o.track) + '</span><button type="button" class="copy-btn" data-copy="' + esc(o.track) + '">Скопировать</button></div>' +
+        (o.carrier ? '<p class="muted small">Отследить посылку можно на сайте или в приложении ' + esc(gen) + ' по этому трек-номеру.</p>' : '') + '</section>';
+    }
+    if (o.status === 'Выдан') h += '<section class="card stack"><p>Заказ у вас 🎉 Оцените его и оставьте отзыв в чате с ботом: это займёт минуту.</p><button type="button" class="btn btn-ghost wide" data-bot>Оценить в чате с ботом</button></section>';
+    if (o.status === 'Отменён') h += '<section class="card"><p>Заказ отменён. Если передумаете, просто отправьте новую заявку.</p></section>';
+    return h + '</div>';
+  }
+
+  function viewSheet() {
+    var p = product(state.sheet);
+    if (!p) return '';
+    return '<div class="sheet-wrap"><button type="button" class="sheet-backdrop" data-close-sheet aria-label="Закрыть"></button>' +
+      '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="grab" aria-hidden="true"></div>' +
+        (p.photos.length ? '<div class="gallery">' + p.photos.map(function (f) { return '<img src="' + photo(f) + '" alt="" loading="lazy">'; }).join('') + '</div>' +
+          (p.photos.length > 1 ? '<p class="gcount">' + p.photos.length + ' фото, листайте</p>' : '') : '') +
+        '<h2 class="h1" id="sheet-title">' + esc(p.name) + '</h2>' +
+        '<p class="muted small">' + esc(p.cat) + ' · ' + (/наличии/i.test(p.stock) ? 'В наличии в Москве' : 'Под заказ из Китая, 3–5 недель') + '</p>' +
+        (p.desc ? '<p>' + esc(p.desc) + '</p>' : '') +
+        (p.price ? '<div class="compare"><div><span class="lbl">У нас под ключ, от</span><b class="num">' + fmt(p.price) + '</b></div>' + (p.rf ? '<div><span class="lbl">В магазинах России</span><s class="num">' + fmt(p.rf) + '</s></div>' : '') + '</div>' +
+          '<p class="note">Итоговую сумму менеджер подтвердит перед оплатой.</p>' : '') +
+        '<button type="button" class="btn btn-primary wide" data-want="' + esc(p.id) + '">' + (p.price ? 'Хочу такой' : 'Узнать цену') + '</button>' +
+        '<p class="note">' + (p.sized ? 'Цена зависит от размера: на Poizon и Taobao у каждого размера своя цена. В заявке укажите размер и мерки.' : 'Добавим товар в заявку, менеджер пришлёт расчёт.') + '</p>' +
+      '</div></div>';
+  }
+
+  // ---------- Отрисовка ----------
+  function render(keep) {
+    var v = state.view;
+    var html = v === 'home' ? viewHome() : v === 'catalog' ? viewCatalog() : v === 'request' ? viewRequest() :
+      v === 'success' ? viewSuccess() : v === 'orders' ? viewOrders() : viewOrder();
+    var top = window.scrollY;
+    screen.innerHTML = html;
+    window.scrollTo(0, keep ? top : 0);
+    layer.innerHTML = state.sheet ? viewSheet() : '';
+    document.querySelectorAll('.tab').forEach(function (t) { if (t.getAttribute('data-tab') === state.tab) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+    document.getElementById('orders-dot').hidden = !state.orders.some(needsAction);
+    var w = TG();
+    try { if (w && w.BackButton) { if (v === 'order' || state.sheet || state.setName) w.BackButton.show(); else w.BackButton.hide(); } } catch (e) {}
+  }
+  function go(view) {
+    state.view = view;
+    state.tab = view === 'success' ? 'request' : view === 'order' ? 'orders' : view;
+    state.sheet = null;
+    render(false);
+  }
+  function back() {
+    if (state.sheet) { state.sheet = null; render(true); return; }
+    if (state.view === 'order') { go('orders'); return; }
+    if (state.setName) { state.setName = null; render(false); }
+  }
+
+  // Фото уменьшаем на телефоне: до 1280 px, JPEG — быстрее отправка
+  function shrink(file) {
+    return new Promise(function (resolve) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var k = Math.min(1, 1280 / Math.max(img.width, img.height));
+          var c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          resolve(c.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = function () { resolve(null); };
+        img.src = fr.result;
+      };
+      fr.onerror = function () { resolve(null); };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function submit() {
+    if (state.sending) return;
+    var bad = state.items.filter(function (x) { return !x.catalogId && !x.title.trim() && !x.photos.length; });
+    if (bad.length) { toast('Добавьте название, ссылку или фото для каждого товара'); return; }
+    if (state.items.some(function (x) { return !x.cat; })) { toast('Выберите категорию для каждого товара'); return; }
+    if (!state.city.trim()) { toast('Укажите город доставки'); return; }
+    state.sending = true; render(true);
+    api('request', {
+      city: state.city.trim(), speed: wholesale() ? '' : state.speed,
+      items: state.items.map(function (x) { return { cat: x.cat, title: x.title.trim(), size: x.size.trim(), qty: x.qty, photos: x.photos, catalogId: x.catalogId, name: x.name }; })
+    }).then(function (r) {
+      state.sending = false;
+      if (!r.ok) { render(true); toast(r.error === 'auth' ? 'Откройте приложение заново из чата с ботом' : (r.error || 'Не получилось отправить, попробуйте ещё раз')); return; }
+      haptic('success');
+      state.lastNo = r.no;
+      if (r.order) state.orders.unshift(r.order);
+      state.items = [newItem()];
+      go('success');
+    }).catch(function () { state.sending = false; render(true); toast('Нет связи. Проверьте интернет и попробуйте ещё раз'); });
+  }
+
+  // ---------- Нажатия ----------
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    var d = t.dataset;
+    if (d.tab) { state.setName = null; go(d.tab); return; }
+    if (d.go) { go(d.go); return; }
+    if (t.hasAttribute('data-bot')) { openBot(); return; }
+    if (d.open) { openLink(d.open); return; }
+    if (d.catmode) { state.catMode = d.catmode; state.setName = null; state.catFilter = 'Все'; render(true); return; }
+    if (d.filter) { state.catFilter = d.filter; render(true); return; }
+    if (d.set) { state.setName = d.set; render(false); return; }
+    if (t.hasAttribute('data-set-back')) { state.setName = null; render(false); return; }
+    if (d.product) { state.sheet = d.product; render(true); return; }
+    if (t.hasAttribute('data-close-sheet')) { state.sheet = null; render(true); return; }
+    if (d.want) {
+      var p = product(d.want); if (!p) return;
+      var it = newItem({ cat: catInfo(p.cat) ? p.cat : '', catalogId: p.id, name: p.name });
+      var only = state.items.length === 1 && !state.items[0].title && !state.items[0].photos.length && !state.items[0].catalogId;
+      if (only) state.items = [it]; else if (state.items.length < 10) state.items.push(it);
+      go('request'); toast(p.sized ? 'Добавили в заявку. Укажите размер и мерки' : 'Добавили в заявку'); return;
+    }
+    if (d.catPick) { var cp = d.catPick.split('|'); state.items[+cp[0]].cat = cp[1]; render(true); return; }
+    if (d.qty) { var q = d.qty.split('|'), item = state.items[+q[0]]; item.qty = Math.max(1, Math.min(999, item.qty + Number(q[1]))); render(true); return; }
+    if (d.remove) { state.items.splice(+d.remove, 1); render(true); return; }
+    if (t.hasAttribute('data-add-item')) { state.items.push(newItem()); render(true); return; }
+    if (d.cityPick) { state.city = d.cityPick; render(true); return; }
+    if (d.speed) { state.speed = d.speed; render(true); return; }
+    if (t.hasAttribute('data-submit')) { submit(); return; }
+    if (d.order) { state.orderNo = +d.order; go('order'); return; }
+    if (d.customsDone) {
+      t.disabled = true;
+      api('customsDone', { no: +d.customsDone }).then(function (r) {
+        if (!r.ok) { t.disabled = false; toast(r.error || 'Не получилось, попробуйте ещё раз'); return; }
+        for (var i = 0; i < state.orders.length; i++) if (state.orders[i].no === r.order.no) state.orders[i] = r.order;
+        haptic('success'); render(true); toast('Спасибо! Отметили');
+      }).catch(function () { t.disabled = false; toast('Нет связи. Попробуйте ещё раз'); });
+      return;
+    }
+    if (d.copy) {
+      var text = d.copy, done = function () { toast('Скопировано: ' + text); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { toast(text); }); else toast(text);
+    }
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset.field) { var f = t.dataset.field.split('|'); state.items[+f[0]][f[1]] = t.value; }
+    if (t.hasAttribute('data-city')) {
+      state.city = t.value;
+      var chip = document.querySelector('[data-city-pick]');
+      if (chip) chip.setAttribute('aria-pressed', String(t.value.trim() === 'Москва'));
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.dataset.photo !== undefined && t.files && t.files.length) {
+      var idx = +t.dataset.photo, files = Array.prototype.slice.call(t.files, 0, 5 - state.items[idx].photos.length);
+      Promise.all(files.map(shrink)).then(function (urls) {
+        state.items[idx].photos = state.items[idx].photos.concat(urls.filter(Boolean)).slice(0, 5);
+        render(true);
+      });
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') back(); });
+
+  // ---------- Запуск ----------
+  function fail(msg) {
+    screen.innerHTML = '<div class="center"><div class="stack" style="max-width:340px"><span class="logo-mark" style="margin:0 auto"><img src="logo.jpg" alt=""></span>' +
+      '<h1 class="h1">Easy Buyer</h1><p class="muted">' + msg + '</p><a class="btn btn-primary" href="https://t.me/' + BOT + '">Открыть бота</a></div></div>';
+  }
+  function boot() {
+    var w = TG();
+    if (w) { try { w.ready(); w.expand(); w.onEvent && w.onEvent('themeChanged', applyTheme); w.BackButton && w.BackButton.onClick(back); } catch (e) {} }
+    applyTheme();
+    if (!initData()) { fail('Откройте приложение в Telegram: кнопка «Приложение» в чате с ботом @' + BOT + '.'); return; }
+    api('boot').then(function (r) {
+      if (!r.ok) { fail(r.error === 'auth' ? 'Не удалось проверить вход. Закройте приложение и откройте снова из чата с ботом.' : 'Что-то пошло не так. Попробуйте открыть приложение ещё раз.'); return; }
+      ['user', 'orders', 'catalog', 'cats', 'speeds', 'faq', 'reviews', 'rate', 'bot'].forEach(function (k) { if (r[k] !== undefined && r[k] !== '') state[k] = r[k]; });
+      state.city = r.city || 'Москва';
+      state.items = [newItem()];
+      document.getElementById('tabbar').hidden = false;
+      var start = hashParam('tgWebAppStartParam') || (w && w.initDataUnsafe && w.initDataUnsafe.start_param) || '';
+      go(start === 'orders' && state.orders.length ? 'orders' : 'home');
+    }).catch(function () { fail('Нет связи с сервером. Проверьте интернет и откройте приложение ещё раз.'); });
+  }
+  // Скрипт Telegram грузится асинхронно: ждём его недолго, потом работаем без него
+  var waited = 0;
+  (function wait() { if (TG() || waited > 1500) boot(); else { waited += 100; setTimeout(wait, 100); } })();
+})();
+</script>
+</body>
+</html>
