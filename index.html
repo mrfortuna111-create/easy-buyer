@@ -673,7 +673,8 @@ p { margin: 0; }
       state.items = [newItem()];
       document.getElementById('tabbar').hidden = false;
       var start = hashParam('tgWebAppStartParam') || (w && w.initDataUnsafe && w.initDataUnsafe.start_param) || '';
-      go(start === 'orders' && state.orders.length ? 'orders' : 'home');
+      // Ссылка ?startapp=catalog из постов группы открывает сразу каталог
+      go(start === 'catalog' ? 'catalog' : start === 'request' ? 'request' : start === 'orders' && state.orders.length ? 'orders' : 'home');
     }).catch(function () { fail('Нет связи с сервером. Проверьте интернет и откройте приложение ещё раз.'); });
   }
   // Скрипт Telegram грузится асинхронно: ждём его недолго, потом работаем без него
